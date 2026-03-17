@@ -1,0 +1,1087 @@
+<!--
+  RoofPing Static Demo
+
+  DEPLOY OPTIONS:
+  1. Drag this file to vercel.com/new → live URL in 60 seconds
+  2. Open directly in any browser for instant local preview
+
+  No build step. No dependencies. No backend required.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoofPing — Interactive Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:     #E24B4A;
+      --red-h:   #c93a39;
+      --green:   #16a34a;
+      --green-h: #15803d;
+      --blue:    #185FA5;
+      --blue-bg: #dbeafe;
+      --amber:   #92400e;
+      --amber-bg:#fef3c7;
+      --gray-txt:#374151;
+      --gray-bg: #f3f4f6;
+      --bg:      #f8fafc;
+      --card:    #ffffff;
+      --border:  #e5e7eb;
+      --text:    #111827;
+      --sub:     #6b7280;
+      --radius:  12px;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── App shell ── */
+    #app-header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .logo {
+      font-weight: 500;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 14px 0;
+      margin-right: 28px;
+    }
+    .logo .roof-icon {
+      width: 28px; height: 28px;
+      background: var(--red);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-size: 15px;
+    }
+    /* Tab nav */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      height: 100%;
+    }
+    .tab-btn {
+      padding: 16px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--sub);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--red);
+      border-bottom-color: var(--red);
+    }
+    .demo-badge {
+      margin-left: auto;
+      padding: 3px 8px;
+      background: #fef2f2;
+      color: var(--red);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* ── Views ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      max-width: 340px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      pointer-events: none;
+      z-index: 999;
+      line-height: 1.4;
+    }
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* ── Page content container ── */
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* ════════════════════════════
+       VIEW 1 — LEAD FORM
+    ════════════════════════════ */
+    .form-hero {
+      background: linear-gradient(135deg, #c0392b 0%, var(--red) 100%);
+      color: #fff;
+      text-align: center;
+      padding: 44px 20px 40px;
+    }
+    .form-hero h1 { font-size: 26px; font-weight: 500; margin-bottom: 8px; }
+    .form-hero p  { color: rgba(255,255,255,.75); font-size: 15px; }
+    .form-hero-pills {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 14px;
+      font-size: 13px;
+      color: rgba(255,255,255,.7);
+    }
+
+    .form-wrap {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+    .form-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+    }
+    .form-card-title { font-size: 16px; font-weight: 500; margin-bottom: 20px; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 500px) { .field-row { grid-template-columns: 1fr; } }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+    .field label .opt { color: #9ca3af; font-weight: 400; }
+    .field input,
+    .field textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      background: #fff;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--red); }
+    .field textarea { resize: none; height: 88px; }
+    .req { color: var(--red); }
+
+    .field .err {
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 3px;
+      display: none;
+    }
+    .field.invalid input,
+    .field.invalid textarea { border-color: var(--red); }
+    .field.invalid .err { display: block; }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 4px;
+    }
+    .btn-submit:hover { background: var(--red-h); }
+
+    .confirm-box {
+      display: none;
+      text-align: center;
+      padding: 32px 20px;
+    }
+    .confirm-box .ck-icon { font-size: 48px; margin-bottom: 12px; }
+    .confirm-box h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+    .confirm-box p { color: var(--sub); font-size: 14px; }
+
+    .trust-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    @media (max-width: 500px) { .trust-row { grid-template-columns: 1fr; } }
+    .trust-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+    }
+    .trust-item .ti-icon { font-size: 20px; margin-bottom: 5px; }
+    .trust-item .ti-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+    .trust-item .ti-sub   { font-size: 12px; color: var(--sub); }
+
+    .form-footer { text-align: center; padding: 14px 0 4px; font-size: 12px; color: #9ca3af; }
+
+    /* ════════════════════════════
+       VIEW 2 — DASHBOARD
+    ════════════════════════════ */
+    .dash-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .dash-title-row h1 { font-size: 20px; font-weight: 500; }
+    .dash-view-link {
+      font-size: 13px;
+      color: var(--sub);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .dash-view-link:hover { color: var(--red); }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .metric-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--sub);
+      margin-bottom: 6px;
+    }
+    .metric-value { font-size: 30px; font-weight: 500; line-height: 1; }
+    .metric-value.red   { color: var(--red); }
+    .metric-value.green { color: var(--green); }
+
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .lead-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .lead-table thead { background: #f9fafb; }
+    .lead-table th {
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--sub);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .lead-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: middle;
+      transition: background 0.15s;
+    }
+    .lead-table tr:last-child td { border-bottom: none; }
+    .lead-table tbody tr:hover td { background: #fafafa; cursor: pointer; }
+
+    .lead-name-btn {
+      color: var(--red);
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      padding: 0;
+      text-decoration: none;
+    }
+    .lead-name-btn:hover { text-decoration: underline; }
+    .phone-link { color: var(--blue); text-decoration: none; font-weight: 500; }
+    .phone-link:hover { text-decoration: underline; }
+    .damage-cell {
+      max-width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--sub);
+      font-size: 13px;
+    }
+    .waiting-cell { font-size: 13px; color: var(--sub); white-space: nowrap; }
+
+    /* Stage badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-new          { background: var(--gray-bg); color: var(--gray-txt); }
+    .badge-acknowledged { background: var(--blue-bg); color: var(--blue); }
+    .badge-nurturing    { background: var(--amber-bg); color: var(--amber); }
+    .badge-rep_alerted  {
+      background: #fee2e2;
+      color: #991b1b;
+      animation: badge-pulse 1.8s ease-in-out infinite;
+    }
+    .badge-contacted    { background: #dcfce7; color: #166534; }
+    .badge-closed       { background: var(--gray-bg); color: #9ca3af; }
+    @keyframes badge-pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(226,75,74,.4); }
+      50%       { opacity: .75; box-shadow: 0 0 0 4px rgba(226,75,74,0); }
+    }
+
+    .btn-contact {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 44px;
+      min-width: 132px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-contact:hover { background: var(--green-h); }
+    .contacted-check { color: var(--green); font-weight: 500; font-size: 14px; }
+
+    .table-footer { padding: 10px 16px; font-size: 12px; color: #9ca3af; text-align: center; border-top: 1px solid var(--border); }
+
+    /* ════════════════════════════
+       VIEW 3 — LEAD DETAIL
+    ════════════════════════════ */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+      margin-bottom: 18px;
+      transition: opacity 0.15s;
+    }
+    .back-btn:hover { opacity: .75; }
+
+    .detail-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+    .detail-card h2 {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-toprow {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .detail-name { font-size: 22px; font-weight: 500; }
+    .detail-stage-wrap { margin-top: 6px; }
+
+    .btn-contact-detail {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 48px;
+      transition: background 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-contact-detail:hover { background: var(--green-h); }
+
+    .detail-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 500px) { .detail-fields { grid-template-columns: 1fr; } }
+    .df-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--sub);
+      margin-bottom: 3px;
+    }
+    .df-value { font-size: 14px; color: var(--text); }
+    .df-phone { color: var(--blue); font-weight: 500; font-size: 15px; text-decoration: none; }
+    .df-phone:hover { text-decoration: underline; }
+    .df-full { grid-column: 1 / -1; }
+
+    /* Timeline */
+    .timeline { position: relative; padding-left: 26px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px; top: 4px; bottom: 4px;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-item { position: relative; margin-bottom: 18px; }
+    .tl-item:last-child { margin-bottom: 0; }
+    .tl-dot {
+      position: absolute;
+      left: -22px; top: 1px;
+      width: 22px; height: 22px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+    .tl-text { font-size: 14px; color: var(--text); }
+    .tl-time { font-size: 12px; color: var(--sub); margin-top: 2px; }
+
+    /* Message log */
+    .msg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .msg-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--sub);
+      border-bottom: 1px solid var(--border);
+    }
+    .msg-table td { padding: 11px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+    .msg-table tr:last-child td { border-bottom: none; }
+    .msg-body { max-width: 260px; color: var(--text); line-height: 1.4; }
+    .msg-ts   { color: var(--sub); font-size: 12px; white-space: nowrap; }
+
+    .mbadge {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .mbadge-sent      { background: #dcfce7; color: #166534; }
+    .mbadge-pending   { background: var(--amber-bg); color: var(--amber); }
+    .mbadge-cancelled { background: var(--gray-bg); color: var(--sub); }
+    .mbadge-failed    { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+
+<!-- ── App header ── -->
+<div id="app-header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="roof-icon">🏠</div>
+      RoofPing
+    </div>
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tab-form"      onclick="switchTab('form')">1 · Lead Form</button>
+      <button class="tab-btn"        id="tab-dashboard" onclick="switchTab('dashboard')">2 · Dashboard</button>
+      <button class="tab-btn"        id="tab-detail"    onclick="switchTab('detail')">3 · Lead Detail</button>
+    </div>
+    <span class="demo-badge">DEMO</span>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+
+<!-- ══════════════════════════════════════════
+     VIEW 1 — LEAD CAPTURE FORM
+══════════════════════════════════════════ -->
+<div id="view-form" class="view active">
+  <div class="form-hero">
+    <h1>Get a Free Roof Inspection</h1>
+    <p>Storm damage? Leak? We respond fast — usually within minutes.</p>
+    <div class="form-hero-pills">
+      <span>⚡ Fast response</span><span>🔍 Free estimate</span><span>🛡️ Licensed &amp; insured</span>
+    </div>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-card" id="form-panel">
+      <div class="form-card-title">Tell us about your roof</div>
+
+      <div class="field-row">
+        <div class="field" id="field-first">
+          <label>First Name <span class="req">*</span></label>
+          <input type="text" id="f-first" placeholder="Jane" />
+          <div class="err">Required</div>
+        </div>
+        <div class="field" id="field-last">
+          <label>Last Name <span class="req">*</span></label>
+          <input type="text" id="f-last" placeholder="Smith" />
+          <div class="err">Required</div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" id="field-phone">
+          <label>Phone <span class="req">*</span></label>
+          <input type="tel" id="f-phone" placeholder="(555) 000-1234" />
+          <div class="err">Enter a valid phone number</div>
+        </div>
+        <div class="field">
+          <label>Email <span class="opt">(optional)</span></label>
+          <input type="email" id="f-email" placeholder="jane@example.com" />
+        </div>
+      </div>
+
+      <div class="field" id="field-addr">
+        <label>Property Address <span class="req">*</span></label>
+        <input type="text" id="f-addr" placeholder="123 Main St, Springfield, IL 62701" />
+        <div class="err">Required</div>
+      </div>
+
+      <div class="field" id="field-damage">
+        <label>Describe the Damage <span class="req">*</span></label>
+        <textarea id="f-damage" placeholder="E.g. Missing shingles after last night's storm, possible leak in the attic..."></textarea>
+        <div class="err">Required</div>
+      </div>
+
+      <button class="btn-submit" onclick="submitForm()">Request Free Inspection</button>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="form-card confirm-box" id="confirm-panel">
+      <div class="ck-icon">✅</div>
+      <h2>Request Received!</h2>
+      <p>We received your request — you'll hear from us shortly.</p>
+    </div>
+
+    <div class="trust-row">
+      <div class="trust-item"><div class="ti-icon">⚡</div><div class="ti-title">Fast Response</div><div class="ti-sub">Within minutes</div></div>
+      <div class="trust-item"><div class="ti-icon">💰</div><div class="ti-title">Free Estimate</div><div class="ti-sub">No obligation</div></div>
+      <div class="trust-item"><div class="ti-icon">🏅</div><div class="ti-title">Trusted Pros</div><div class="ti-sub">Licensed &amp; local</div></div>
+    </div>
+
+    <div class="form-footer">Powered by RoofPing</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     VIEW 2 — REP DASHBOARD
+══════════════════════════════════════════ -->
+<div id="view-dashboard" class="view">
+  <div class="page">
+    <div class="dash-title-row">
+      <h1>Lead Inbox</h1>
+      <span class="dash-view-link" onclick="switchTab('form')">View lead form →</span>
+    </div>
+
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-label">Active Leads</div>
+        <div class="metric-value red" id="active-count">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Contacted Today</div>
+        <div class="metric-value green" id="contacted-count">—</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <table class="lead-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Damage</th>
+            <th>Stage</th>
+            <th>Waiting</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="lead-tbody"></tbody>
+      </table>
+      <div class="table-footer">Dashboard auto-refreshes every 30 seconds</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     VIEW 3 — LEAD DETAIL
+══════════════════════════════════════════ -->
+<div id="view-detail" class="view">
+  <div class="page">
+    <button class="back-btn" onclick="switchTab('dashboard')">← Back to dashboard</button>
+
+    <!-- Info card -->
+    <div class="detail-card">
+      <div class="detail-toprow">
+        <div>
+          <div class="detail-name" id="d-name"></div>
+          <div class="detail-stage-wrap" id="d-badge"></div>
+        </div>
+        <button class="btn-contact-detail" id="d-contact-btn" onclick="detailContact()">✓ Mark Contacted</button>
+      </div>
+      <div class="detail-fields" id="d-fields"></div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="detail-card">
+      <h2>Activity Timeline</h2>
+      <div class="timeline" id="d-timeline"></div>
+    </div>
+
+    <!-- Message log -->
+    <div class="detail-card">
+      <h2>Message Log</h2>
+      <div style="overflow-x:auto">
+        <table class="msg-table">
+          <thead><tr><th>Message</th><th>Scheduled</th><th>Sent</th><th>Status</th></tr></thead>
+          <tbody id="d-messages"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  // ════════════════════════════════════════════
+  // DATA
+  // ════════════════════════════════════════════
+
+  const COMPANY = 'Peak Roofing';
+  const REP_PHONE = '(555) 800-9000';
+
+  const now = Date.now();
+  const ago = h => new Date(now - h * 3600000);
+  const fwd = h => new Date(now + h * 3600000);
+
+  const leads = [
+    {
+      id: '1',
+      first_name: 'Marcus', last_name: 'Rivera',
+      phone: '(555) 210-4477',
+      email: 'marcus.r@email.com',
+      address: '847 Elmwood Dr, Springfield, IL',
+      damage: 'Several shingles blown off after Tuesday storm, attic shows water staining on north wall.',
+      stage: 'rep_alerted',
+      created: ago(7.37),
+      events: [
+        { type:'acknowledged',   at: ago(7.36), meta: { firstName:'Marcus' } },
+        { type:'follow_up_sent', at: ago(7.36 - 24), meta: { n:1 } },
+        { type:'follow_up_sent', at: ago(7.36 - 48), meta: { n:2 } },
+        { type:'escalation_sent',at: ago(1.37), meta: { hours:6 } },
+      ],
+      messages: [
+        { body:`Hi Marcus! This is ${COMPANY}. We received your roofing request and someone will be in touch shortly. 📸`, sched: ago(7.37), sent: ago(7.36), status:'sent' },
+        { body:`Hey Marcus, still planning to connect about your roof. Reply or call ${REP_PHONE} anytime.`,              sched: fwd(16.63), sent: null, status:'pending' },
+        { body:`Hi Marcus, we don't want you to get left waiting. Call ${REP_PHONE} to get your free inspection.`,        sched: fwd(40.63), sent: null, status:'pending' },
+        { body:`⚠️ LEAD ALERT: Marcus Rivera has been waiting 6 hours. Damage: Several shingles... Call: (555) 210-4477`, sched: ago(1.37), sent: ago(1.37), status:'sent' },
+      ],
+    },
+    {
+      id: '2',
+      first_name: 'Diane', last_name: 'Okafor',
+      phone: '(555) 334-8821',
+      email: '',
+      address: '22 Birch Ln, Riverside, MO',
+      damage: 'Ice dam over garage, dripping into ceiling when it thaws.',
+      stage: 'nurturing',
+      created: ago(31),
+      events: [
+        { type:'acknowledged',   at: ago(30.99), meta: { firstName:'Diane' } },
+        { type:'follow_up_sent', at: ago(6.99),  meta: { n:1 } },
+        { type:'follow_up_sent', at: ago(6.99 - 24), meta: { n:2 } },
+      ],
+      messages: [
+        { body:`Hi Diane! This is ${COMPANY}. We received your roofing request. 📸`, sched: ago(31), sent: ago(30.99), status:'sent' },
+        { body:`Hey Diane, still planning to connect. Reply or call ${REP_PHONE}.`,   sched: ago(7),  sent: ago(6.99), status:'sent' },
+        { body:`Hi Diane, we don't want you to get left waiting. Call ${REP_PHONE}.`, sched: fwd(17), sent: null,      status:'pending' },
+      ],
+    },
+    {
+      id: '3',
+      first_name: 'Trevor', last_name: 'Nash',
+      phone: '(555) 907-1155',
+      email: 'tnash@email.net',
+      address: '19 Pine Ridge Ct, Oakdale, KS',
+      damage: 'Missing flashing around chimney, visible rust streaks on two sections.',
+      stage: 'acknowledged',
+      created: ago(1.23),
+      events: [
+        { type:'acknowledged', at: ago(1.22), meta: { firstName:'Trevor' } },
+      ],
+      messages: [
+        { body:`Hi Trevor! This is ${COMPANY}. We received your roofing request. 📸`, sched: ago(1.23), sent: ago(1.22), status:'sent' },
+        { body:`Hey Trevor, still planning to connect. Reply or call ${REP_PHONE}.`,   sched: fwd(22.77), sent: null,     status:'pending' },
+        { body:`Hi Trevor, we don't want you to get left waiting. Call ${REP_PHONE}.`, sched: fwd(46.77), sent: null,     status:'pending' },
+      ],
+    },
+    {
+      id: '4',
+      first_name: 'Amara', last_name: 'Patel',
+      phone: '(555) 441-0032',
+      email: 'amara.patel@gmail.com',
+      address: '5511 Meadow View Blvd, Fairview, OH',
+      damage: 'Hail damage — multiple dents on south-facing slope, gutters dented.',
+      stage: 'nurturing',
+      created: ago(18.08),
+      events: [
+        { type:'acknowledged',   at: ago(18.07), meta: { firstName:'Amara' } },
+        { type:'follow_up_sent', at: ago(18.07 - 24), meta: { n:1 } },
+      ],
+      messages: [
+        { body:`Hi Amara! This is ${COMPANY}. We received your roofing request. 📸`, sched: ago(18.08), sent: ago(18.07), status:'sent' },
+        { body:`Hey Amara, still planning to connect. Reply or call ${REP_PHONE}.`,   sched: fwd(5.92),  sent: null,      status:'pending' },
+        { body:`Hi Amara, we don't want you to get left waiting. Call ${REP_PHONE}.`, sched: fwd(29.92), sent: null,      status:'pending' },
+      ],
+    },
+    {
+      id: '5',
+      first_name: 'Chris', last_name: 'Donovan',
+      phone: '(555) 678-2244',
+      email: '',
+      address: '304 Lakeview Dr, Canton, GA',
+      damage: 'Tree branch fell on rear section, visible hole approx 2ft wide.',
+      stage: 'contacted',
+      created: ago(5),
+      events: [
+        { type:'acknowledged',   at: ago(4.99), meta: { firstName:'Chris' } },
+        { type:'follow_up_sent', at: ago(4.99 - 24), meta: { n:1 } },
+        { type:'rep_contacted',  at: ago(2),    meta: {} },
+      ],
+      messages: [
+        { body:`Hi Chris! This is ${COMPANY}. We received your roofing request. 📸`, sched: ago(5),  sent: ago(4.99), status:'sent' },
+        { body:`Hey Chris, still planning to connect. Reply or call ${REP_PHONE}.`,   sched: fwd(19), sent: null,      status:'cancelled' },
+        { body:`Hi Chris, we don't want you to get left waiting. Call ${REP_PHONE}.`, sched: fwd(43), sent: null,      status:'cancelled' },
+      ],
+    },
+  ];
+
+  let currentDetailId = '1';
+
+  // ════════════════════════════════════════════
+  // UTILITIES
+  // ════════════════════════════════════════════
+
+  function fmtWaiting(date) {
+    const h = (Date.now() - date.getTime()) / 3600000;
+    if (h < 1) { const m = Math.round(h*60); return `${m}m`; }
+    if (h < 24) { const hh=Math.floor(h), mm=Math.round((h-hh)*60); return mm?`${hh}h ${mm}m`:`${hh}h`; }
+    const d=Math.floor(h/24), rh=Math.floor(h%24); return rh?`${d}d ${rh}h`:`${d}d`;
+  }
+
+  function fmtTs(d) {
+    if (!d) return '—';
+    return d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+  }
+
+  function stageBadge(stage) {
+    const labels = {new:'New',acknowledged:'Acknowledged',nurturing:'Nurturing',rep_alerted:'Rep Alerted',contacted:'Contacted',closed:'Closed'};
+    return `<span class="badge badge-${stage}">${labels[stage]||stage}</span>`;
+  }
+
+  function evText(ev) {
+    switch(ev.type) {
+      case 'acknowledged':   return {i:'✅', t:`Acknowledgment SMS sent to ${ev.meta?.firstName||''}`};
+      case 'follow_up_sent': return {i:'📨', t:`Follow-up #${ev.meta?.n||1} sent`};
+      case 'escalation_sent':return {i:'⚠️', t:`Escalation alert sent to rep — ${ev.meta?.hours||6}h waiting`};
+      case 'rep_contacted':  return {i:'🤝', t:'Marked as contacted — pending messages cancelled'};
+      case 'lead_replied':   return {i:'💬', t:`${ev.meta?.firstName||'Homeowner'} replied: '${ev.meta?.msg||''}'`};
+      default:               return {i:'•',  t:ev.type};
+    }
+  }
+
+  function mbadge(s) {
+    return `<span class="mbadge mbadge-${s}">${s}</span>`;
+  }
+
+  function metrics() {
+    const active = leads.filter(l=>l.stage!=='contacted'&&l.stage!=='closed').length;
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const ctd = leads.filter(l=>l.stage==='contacted'&&l.created>=todayStart).length;
+    document.getElementById('active-count').textContent = active;
+    document.getElementById('contacted-count').textContent = ctd;
+  }
+
+  // ════════════════════════════════════════════
+  // TOAST
+  // ════════════════════════════════════════════
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 4000);
+  }
+
+  // ════════════════════════════════════════════
+  // TAB SWITCHING
+  // ════════════════════════════════════════════
+
+  function switchTab(name) {
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('view-'+name).classList.add('active');
+    document.getElementById('tab-'+name).classList.add('active');
+    if (name==='dashboard') renderDashboard();
+    if (name==='detail')    renderDetail(currentDetailId);
+    window.scrollTo(0,0);
+  }
+
+  // ════════════════════════════════════════════
+  // VIEW 1 — FORM
+  // ════════════════════════════════════════════
+
+  function submitForm() {
+    let valid = true;
+
+    function check(fieldId, inputId, test) {
+      const val = document.getElementById(inputId).value.trim();
+      const field = document.getElementById(fieldId);
+      if (!test(val)) { field.classList.add('invalid'); valid=false; }
+      else             { field.classList.remove('invalid'); }
+      return val;
+    }
+
+    const first = check('field-first','f-first', v=>v.length>0);
+    check('field-last',  'f-last',   v=>v.length>0);
+    check('field-addr',  'f-addr',   v=>v.length>0);
+    check('field-damage','f-damage', v=>v.length>0);
+    check('field-phone', 'f-phone',  v=>v.replace(/\D/g,'').length>=10);
+
+    if (!valid) return;
+
+    const firstName = document.getElementById('f-first').value.trim();
+    const lastName  = document.getElementById('f-last').value.trim();
+    const phone     = document.getElementById('f-phone').value.trim();
+    const email     = document.getElementById('f-email').value.trim();
+    const addr      = document.getElementById('f-addr').value.trim();
+    const damage    = document.getElementById('f-damage').value.trim();
+
+    // Show confirmation
+    document.getElementById('form-panel').style.display  = 'none';
+    document.getElementById('confirm-panel').style.display = 'block';
+
+    // Toast after 3s
+    const smsBody = `Hi ${firstName}! This is ${COMPANY}. We received your roofing request and someone will be in touch shortly. 📸`;
+    setTimeout(()=>{
+      showToast(`📱 SMS sent to ${firstName}: "${smsBody.substring(0,60)}…"`);
+    }, 3000);
+
+    // Add to leads
+    const newLead = {
+      id: 'new_'+Date.now(),
+      first_name: firstName, last_name: lastName,
+      phone, email, address: addr, damage,
+      stage: 'new',
+      created: new Date(),
+      events: [],
+      messages: [
+        { body: smsBody, sched: new Date(), sent: null, status:'pending' },
+      ],
+    };
+    leads.unshift(newLead);
+  }
+
+  // ════════════════════════════════════════════
+  // VIEW 2 — DASHBOARD
+  // ════════════════════════════════════════════
+
+  function renderDashboard() {
+    metrics();
+    const tbody = document.getElementById('lead-tbody');
+    tbody.innerHTML = '';
+    leads.forEach(lead => {
+      const tr = document.createElement('tr');
+      const dmg = lead.damage.length>60 ? lead.damage.substring(0,60)+'…' : lead.damage;
+      tr.innerHTML = `
+        <td><button class="lead-name-btn" onclick="openDetail('${lead.id}')">${lead.first_name} ${lead.last_name}</button></td>
+        <td><a class="phone-link" href="tel:${lead.phone}">${lead.phone}</a></td>
+        <td style="font-size:13px;color:var(--sub);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lead.address}</td>
+        <td class="damage-cell">${dmg}</td>
+        <td>${stageBadge(lead.stage)}</td>
+        <td class="waiting-cell">${fmtWaiting(lead.created)}</td>
+        <td>${renderAction(lead)}</td>
+      `;
+      tr.querySelectorAll('td:not(:last-child)').forEach(td=>{
+        td.style.cursor='pointer';
+        td.addEventListener('click',()=>openDetail(lead.id));
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderAction(lead) {
+    if (lead.stage==='contacted'||lead.stage==='closed')
+      return `<span class="contacted-check">✓ Contacted</span>`;
+    return `<button class="btn-contact" onclick="event.stopPropagation();dashContact('${lead.id}')">Mark Contacted</button>`;
+  }
+
+  function dashContact(id) {
+    markContacted(id);
+    showToast('✓ Sequence stopped — all pending messages cancelled');
+    renderDashboard();
+  }
+
+  function openDetail(id) {
+    currentDetailId = id;
+    switchTab('detail');
+  }
+
+  // ════════════════════════════════════════════
+  // VIEW 3 — LEAD DETAIL
+  // ════════════════════════════════════════════
+
+  function renderDetail(id) {
+    const lead = leads.find(l=>l.id===id);
+    if (!lead) return;
+
+    document.getElementById('d-name').textContent = `${lead.first_name} ${lead.last_name}`;
+    document.getElementById('d-badge').innerHTML  = stageBadge(lead.stage);
+
+    const btn = document.getElementById('d-contact-btn');
+    btn.style.display = (lead.stage==='contacted'||lead.stage==='closed') ? 'none' : 'block';
+
+    document.getElementById('d-fields').innerHTML = `
+      <div>
+        <div class="df-label">Phone</div>
+        <a class="df-phone" href="tel:${lead.phone}">${lead.phone}</a>
+      </div>
+      ${lead.email ? `<div><div class="df-label">Email</div><div class="df-value">${lead.email}</div></div>` : '<div></div>'}
+      <div>
+        <div class="df-label">Address</div>
+        <div class="df-value">${lead.address}</div>
+      </div>
+      <div>
+        <div class="df-label">Submitted</div>
+        <div class="df-value">${fmtTs(lead.created)}</div>
+      </div>
+      <div class="df-full">
+        <div class="df-label">Damage Description</div>
+        <div class="df-value">${lead.damage}</div>
+      </div>
+    `;
+
+    // Timeline
+    const tl = document.getElementById('d-timeline');
+    if (lead.events.length===0) {
+      tl.innerHTML = '<p style="color:var(--sub);font-size:13px">No events yet.</p>';
+    } else {
+      tl.innerHTML = lead.events.map(ev=>{
+        const {i,t} = evText(ev);
+        return `<div class="tl-item"><div class="tl-dot">${i}</div><div class="tl-text">${t}</div><div class="tl-time">${fmtTs(ev.at)}</div></div>`;
+      }).join('');
+    }
+
+    // Messages
+    document.getElementById('d-messages').innerHTML = lead.messages.map(m=>`
+      <tr>
+        <td class="msg-body">${m.body.substring(0,90)}${m.body.length>90?'…':''}</td>
+        <td class="msg-ts">${fmtTs(m.sched)}</td>
+        <td class="msg-ts">${fmtTs(m.sent)}</td>
+        <td>${mbadge(m.status)}</td>
+      </tr>
+    `).join('');
+  }
+
+  function detailContact() {
+    markContacted(currentDetailId);
+    showToast('✓ Sequence stopped — all pending messages cancelled');
+    renderDetail(currentDetailId);
+  }
+
+  // ════════════════════════════════════════════
+  // SHARED
+  // ════════════════════════════════════════════
+
+  function markContacted(id) {
+    const lead = leads.find(l=>l.id===id);
+    if (!lead) return;
+    lead.stage = 'contacted';
+    lead.messages.forEach(m=>{ if(m.status==='pending') m.status='cancelled'; });
+    const hasRepContact = lead.events.some(e=>e.type==='rep_contacted');
+    if (!hasRepContact) {
+      lead.events.push({ type:'rep_contacted', at:new Date(), meta:{} });
+    }
+  }
+
+  // ── Init ──
+  renderDashboard();
+</script>
+</body>
+</html>
