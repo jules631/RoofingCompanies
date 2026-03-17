@@ -39,6 +39,12 @@ export default function Dashboard() {
     (l) => l.stage !== 'contacted' && l.stage !== 'closed'
   );
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const contactedToday = leads.filter(
+    (l) => l.stage === 'contacted' && new Date(l.created_at) >= todayStart
+  ).length;
+
   return (
     <>
       <Head>
@@ -72,26 +78,9 @@ export default function Dashboard() {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 py-6">
-          {/* Stats */}
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Lead Inbox</h1>
-              <p className="text-gray-500 text-sm mt-0.5">
-                {loading ? (
-                  'Loading...'
-                ) : (
-                  <>
-                    <span className="font-semibold text-gray-700">{activeLeads.length}</span>{' '}
-                    active lead{activeLeads.length !== 1 ? 's' : ''}
-                    {leads.length - activeLeads.length > 0 && (
-                      <span className="text-gray-400 ml-2">
-                        · {leads.length - activeLeads.length} closed
-                      </span>
-                    )}
-                  </>
-                )}
-              </p>
-            </div>
+          {/* Header row */}
+          <div className="mb-5 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">Lead Inbox</h1>
             <Link
               href="/"
               target="_blank"
@@ -101,15 +90,22 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Alert for rep_alerted leads */}
-          {activeLeads.some((l) => l.stage === 'rep_alerted') && (
-            <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-              <span className="text-xl">⚠️</span>
-              <div>
-                <p className="font-semibold text-red-800">Action Required</p>
-                <p className="text-red-600 text-sm">
-                  You have leads waiting over 6 hours with no contact.
-                </p>
+          {/* Metric cards */}
+          {!loading && (
+            <div className="mb-6 grid grid-cols-2 gap-4">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active Leads</p>
+                <p className="text-3xl font-bold text-gray-900">{activeLeads.length}</p>
+                {activeLeads.some((l) => l.stage === 'rep_alerted') && (
+                  <p className="text-xs text-red-600 mt-1 font-medium">
+                    ⚠️ {activeLeads.filter((l) => l.stage === 'rep_alerted').length} need attention
+                  </p>
+                )}
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Contacted Today</p>
+                <p className="text-3xl font-bold text-green-600">{contactedToday}</p>
+                <p className="text-xs text-gray-400 mt-1">leads closed today</p>
               </div>
             </div>
           )}

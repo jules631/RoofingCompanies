@@ -85,34 +85,40 @@ const worker = new Worker(
 
       // Insert event and update lead stage based on job type
       if (jobIndex === 0) {
-        // Job 1: instant acknowledgment
+        // Job 1: instant acknowledgment → stage becomes "acknowledged"
         await db.query(
-          "INSERT INTO events (lead_id, type) VALUES ($1, 'acknowledged')",
-          [leadId]
+          "INSERT INTO events (lead_id, type, metadata) VALUES ($1, 'acknowledged', $2)",
+          [leadId, JSON.stringify({ firstName: lead.first_name })]
         );
         await db.query(
-          "UPDATE leads SET stage = 'nurturing' WHERE id = $1 AND stage = 'new'",
+          "UPDATE leads SET stage = 'acknowledged' WHERE id = $1 AND stage = 'new'",
           [leadId]
         );
-      } else if (jobIndex === 1 || jobIndex === 2) {
-        // Jobs 2 & 3: follow-ups
+      } else if (jobIndex === 1) {
+        // Job 2: 24hr follow-up → stage becomes "nurturing"
         await db.query(
           "INSERT INTO events (lead_id, type, metadata) VALUES ($1, 'follow_up_sent', $2)",
-          [leadId, JSON.stringify({ followUpNumber: jobIndex })]
+          [leadId, JSON.stringify({ followUpNumber: 1, messagePreview: body.substring(0, 80) })]
+        );
+        await db.query(
+          "UPDATE leads SET stage = 'nurturing' WHERE id = $1 AND stage NOT IN ('contacted', 'closed', 'rep_alerted')",
+          [leadId]
+        );
+      } else if (jobIndex === 2) {
+        // Job 3: 48hr follow-up
+        await db.query(
+          "INSERT INTO events (lead_id, type, metadata) VALUES ($1, 'follow_up_sent', $2)",
+          [leadId, JSON.stringify({ followUpNumber: 2, messagePreview: body.substring(0, 80) })]
         );
       } else if (jobIndex === 3) {
         // Job 4: rep escalation
-        await db.query(
-          "UPDATE messages SET status = 'sent' WHERE id = $1",
-          [messageId]
-        );
         await db.query(
           "UPDATE leads SET stage = 'rep_alerted' WHERE id = $1 AND stage NOT IN ('contacted', 'closed')",
           [leadId]
         );
         await db.query(
-          "INSERT INTO events (lead_id, type) VALUES ($1, 'escalation_sent')",
-          [leadId]
+          "INSERT INTO events (lead_id, type, metadata) VALUES ($1, 'escalation_sent', $2)",
+          [leadId, JSON.stringify({ hoursWaiting: 6 })]
         );
       }
 

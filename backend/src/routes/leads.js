@@ -62,19 +62,19 @@ router.post('/', async (req, res) => {
         delay: 0,
         recipient: 'homeowner',
         scheduledAt: new Date(now.getTime()),
-        body: `Hi ${first_name}! This is ${companyName}. We received your roofing request and someone will be in touch with you shortly. In the meantime, if you can document any damage with photos it'll help us give you the most accurate estimate. 📸`,
+        body: `Hi ${first_name}! This is ${companyName}. We received your roofing request and someone will be in touch shortly. Documenting damage with photos will help us give you the most accurate estimate. 📸`,
       },
       {
         delay: 24 * 60 * 60 * 1000,
         recipient: 'homeowner',
         scheduledAt: new Date(now.getTime() + 24 * 60 * 60 * 1000),
-        body: `Hey ${first_name}, still planning to connect with you about your roof. Quick tip: if you're working with insurance, having your policy number handy helps us move faster for you. Questions? Reply here or call us at ${repPhone}.`,
+        body: `Hey ${first_name}, still planning to connect about your roof. If you're working with insurance, having your policy number handy helps us move faster. Reply or call ${repPhone} anytime.`,
       },
       {
         delay: 48 * 60 * 60 * 1000,
         recipient: 'homeowner',
         scheduledAt: new Date(now.getTime() + 48 * 60 * 60 * 1000),
-        body: `Hi ${first_name}, we don't want you to get left waiting. Reply here or call us at ${repPhone} to get your free inspection scheduled — we'll make it easy.`,
+        body: `Hi ${first_name}, we don't want you to get left waiting. Reply here or call ${repPhone} to get your free inspection scheduled.`,
       },
       {
         delay: 6 * 60 * 60 * 1000,

@@ -158,7 +158,7 @@ export default function LeadDetail() {
           {/* Event timeline */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-5">Activity Timeline</h2>
-            <EventTimeline events={lead.events} />
+            <EventTimeline events={lead.events} lead={lead} />
           </div>
 
           {/* Message log */}
